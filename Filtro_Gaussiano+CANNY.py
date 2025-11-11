@@ -1,0 +1,88 @@
+import cv2
+import numpy as np
+
+# === 1. Cargar imagen en escala de grises ===
+img = cv2.imread('OCT_Dataset/NO/no_9444960_2.jpg', cv2.IMREAD_GRAYSCALE)
+
+# === 2. Preprocesamiento ===
+blur = cv2.GaussianBlur(img, (5, 5), 0)
+
+# === 3. Filtro Canny ===
+# Los valores de umbral pueden ajustarse según la calidad de la imagen OCT
+edges = cv2.Canny(blur, threshold1=0, threshold2=400)
+filtroVitreo = cv2.Canny(blur, threshold1=25, threshold2=80)
+
+# === 4. Detección de bordes por columna ===
+height, width = edges.shape
+top_line = np.full(width, np.nan)
+bottom_line = np.full(width, np.nan)
+
+for x in range(width):
+    column = edges[:, x]
+    y_candidates = np.where(column > 0)[0]
+    if len(y_candidates) > 0:
+        top_line[x] = y_candidates[0]      # borde superior
+        bottom_line[x] = y_candidates[-1]  # borde inferior
+
+# === 4.5 Vitreo
+height2, width2 = filtroVitreo.shape
+vitreo_line = np.full(width2, np.nan)
+
+for x in range(width2):
+    column = filtroVitreo[:, x]
+    y_candidates = np.where(column > 0)[0]
+    if len(y_candidates) > 0:
+        vitreo_line[x] = y_candidates[0]  # borde vitreo
+
+# === 5. Suavizado de líneas ===
+def smooth(signal, window=15):
+    kernel = np.ones(window) / window
+    return np.convolve(signal, kernel, mode='same')
+
+top_smooth = smooth(top_line)
+bottom_smooth = smooth(bottom_line)
+vitreo_smooth = smooth(vitreo_line)
+
+# === 6. Detección de fóvea ===
+def detect_fovea_on_red_line(top_line, window_width=50):
+    center_start = int(len(top_line) * 0.35)
+    center_end = int(len(top_line) * 0.65)
+    center_region = top_line[center_start:center_end]
+    
+    if len(center_region) > 0 and not np.all(np.isnan(center_region)):
+        max_idx = np.nanargmax(center_region)
+        fovea_x = center_start + max_idx
+        fovea_y = int(top_line[fovea_x])
+        return fovea_x, fovea_y
+    return None, None
+
+fovea_x, fovea_y = detect_fovea_on_red_line(top_smooth)
+
+# === 7. Visualización ===
+img_color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+for x in range(width):
+    if not np.isnan(top_smooth[x]):
+        y = int(top_smooth[x])
+        cv2.circle(img_color, (x, y), 1, (0, 0, 255), -1)    # rojo = capa superior
+    if not np.isnan(bottom_smooth[x]):
+        y = int(bottom_smooth[x])
+        cv2.circle(img_color, (x, y), 1, (0, 255, 0), -1)    # verde = capa inferior
+    if not np.isnan(vitreo_smooth[x]):
+        y = int(vitreo_smooth[x])
+        cv2.circle(img_color, (x, y), 1, (255, 0, 0), -1)    # verde = capa inferior
+
+# Dibujar fóvea
+if fovea_x is not None and fovea_y is not None:
+    cv2.circle(img_color, (fovea_x, fovea_y), 8, (255, 255, 0), 2)
+    cv2.circle(img_color, (fovea_x, fovea_y), 3, (255, 255, 0), -1)
+    cv2.putText(img_color, 'Fovea', (fovea_x - 25, fovea_y - 25),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
+    print(f"Fovea detectada en: X={fovea_x}, Y={fovea_y}")
+
+# Mostrar resultados
+cv2.imshow('Bordes de Canny para retina y fovea', edges)
+cv2.imshow('Bordes de Canny para vitreo', filtro)
+cv2.imshow('Analisis OCT con Canny', img_color)
+cv2.waitKey(0)
+cv2.destroyAllWindows()

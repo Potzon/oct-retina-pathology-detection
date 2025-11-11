@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # === 1. Cargar imagen en escala de grises ===
-img = cv2.imread('OCT_Dataset/NO/no_9663705_2.jpg', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('OCT_Dataset/NO/no_1391081_3.jpg', cv2.IMREAD_GRAYSCALE)
 
 # === 2. Preprocesamiento ===
 blur = cv2.GaussianBlur(img, (5, 5), 0)
@@ -84,9 +84,9 @@ if fovea_x is not None and fovea_y is not None:
     cv2.circle(img_color, (fovea_x, fovea_y), 3, (255, 255, 0), -1)
     cv2.putText(img_color, 'Fovea', (fovea_x - 25, fovea_y - 25),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
-    print(f"Fóvea detectada en: X={fovea_x}, Y={fovea_y}")
+    print(f"Fovea detectada en: X={fovea_x}, Y={fovea_y}")
 
 # Mostrar imagen
-cv2.imshow('Analisis OCT Macular con Capa del Vítreo', img_color)
+cv2.imshow('Analisis OCT Macular con Capa del Vitreo', img_color)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
