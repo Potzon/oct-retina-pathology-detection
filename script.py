@@ -386,6 +386,9 @@ def analyze_oct_macular_scan(image_path, output_folder='./results'):
     print("\n" + "=" * 60)
     
     # Mostrar imagen
+    cv2.imshow("gaus", blurred)
+    cv2.imshow("clahe",enhanced)
+    cv2.imshow("canny", edges)
     cv2.imshow('Análisis OCT Macular Completo', result)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
@@ -395,4 +398,4 @@ def analyze_oct_macular_scan(image_path, output_folder='./results'):
 # ==================== EJECUCIÓN ====================
 if __name__ == "__main__":
     # Cambiar por la ruta de tu imagen
-    resultado, fovea_pos, traction, pvd = analyze_oct_macular_scan('OCT_Dataset/NO/no_1250592_2.jpg')
+    resultado, fovea_pos, traction, pvd = analyze_oct_macular_scan('OCT_Dataset/NO/no_1391081_2.jpg')

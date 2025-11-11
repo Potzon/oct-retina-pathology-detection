@@ -2,15 +2,15 @@ import cv2
 import numpy as np
 
 # === 1. Cargar imagen en escala de grises ===
-img = cv2.imread('OCT_Dataset/NO/no_9444960_2.jpg', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('OCT_Dataset/NO/no_1391081_2.jpg', cv2.IMREAD_GRAYSCALE)
 
 # === 2. Preprocesamiento ===
 blur = cv2.GaussianBlur(img, (5, 5), 0)
 
 # === 3. Filtro Canny ===
 # Los valores de umbral pueden ajustarse según la calidad de la imagen OCT
-edges = cv2.Canny(blur, threshold1=0, threshold2=400)
-filtroVitreo = cv2.Canny(blur, threshold1=25, threshold2=80)
+edges = cv2.Canny(blur, 0, 400)
+filtroVitreo = cv2.Canny(blur, 25, 80)
 
 # === 4. Detección de bordes por columna ===
 height, width = edges.shape
@@ -69,7 +69,7 @@ for x in range(width):
         y = int(bottom_smooth[x])
         cv2.circle(img_color, (x, y), 1, (0, 255, 0), -1)    # verde = capa inferior
     if not np.isnan(vitreo_smooth[x]):
-        y = int(vitreo_smooth[x])
+        y = int(vitreo_smooth[x]) -2 # para poder diferenciar con la capa roja 
         cv2.circle(img_color, (x, y), 1, (255, 0, 0), -1)    # verde = capa inferior
 
 # Dibujar fóvea

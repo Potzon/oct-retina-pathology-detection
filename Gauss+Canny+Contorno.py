@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # ========= 1) Cargar y preprocesar =========
-img = cv2.imread('OCT_Dataset/NO/no_9504302_1.jpg', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('OCT_Dataset/NO/no_1391081_2.jpg', cv2.IMREAD_GRAYSCALE)
 assert img is not None, "No se pudo leer la imagen"  # Cargar en escala de grises es adecuado para Canny [web:7][web:19]
 
 # Desenfoque Gaussiano previo a Canny para reducir ruido
