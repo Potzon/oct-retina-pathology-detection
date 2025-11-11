@@ -81,8 +81,9 @@ if fovea_x is not None and fovea_y is not None:
     print(f"Fovea detectada en: X={fovea_x}, Y={fovea_y}")
 
 # Mostrar resultados
+cv2.imshow('Original', img)
 cv2.imshow('Bordes de Canny para retina y fovea', edges)
-cv2.imshow('Bordes de Canny para vitreo', filtro)
+cv2.imshow('Borde de Canny para vitreo', filtroVitreo)
 cv2.imshow('Analisis OCT con Canny', img_color)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
