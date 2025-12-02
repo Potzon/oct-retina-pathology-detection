@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # === 1. Cargar imagen en escala de grises ===
-img = cv2.imread('OCT_Dataset/NO/no_1391081_2.jpg', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('OCT_Dataset/VID/vid_3139502_1.jpg', cv2.IMREAD_GRAYSCALE)
 
 # === 2. Preprocesamiento ===
 blur = cv2.GaussianBlur(img, (5, 5), 0)
@@ -58,18 +58,54 @@ def detect_fovea_on_red_line(top_line, window_width=50):
 
 fovea_x, fovea_y = detect_fovea_on_red_line(top_smooth)
 
+# === Detección de agujero macular alrededor de la fóvea ===
+def detectar_agujero_macular_fovea(top_line, bottom_line, vitreo_line,
+                                   fovea_x, window_radius=40, thickness_ratio=0.3):
+    start = max(fovea_x - window_radius, 0)
+    end   = min(fovea_x + window_radius, len(top_line))
+
+    # grosor en la ventana central
+    thickness = bottom_line[start:end] - top_line[start:end]
+    thickness = thickness[~np.isnan(thickness)]
+
+    if len(thickness) == 0:
+        return None, None
+
+    min_th = np.min(thickness)
+    mean_th = np.mean(thickness)
+
+    # agujero si el mínimo es muy pequeño comparado con la retina periférica
+    if min_th < thickness_ratio * mean_th:
+        x_min = start + np.argmin(thickness)
+        print(f"[ALERTA] Posible agujero macular en X={x_min}")
+        return x_min, min_th
+
+    print("NO hay agujero macular")
+    return None, None
+
+
+# Ejemplo de uso
+agujero_x, agujero_grosor = detectar_agujero_macular_fovea(
+    top_smooth,        
+    bottom_smooth,      
+    vitreo_smooth,      
+    fovea_x,            
+    window_radius=40,    
+    thickness_ratio=0.3  
+)
+
 # === 7. Visualización ===
 img_color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
 for x in range(width):
     if not np.isnan(top_smooth[x]):
-        y = int(top_smooth[x])
+        y = int(top_smooth[x]) + 1
         cv2.circle(img_color, (x, y), 1, (0, 0, 255), -1)    # rojo = capa superior
     if not np.isnan(bottom_smooth[x]):
         y = int(bottom_smooth[x])
         cv2.circle(img_color, (x, y), 1, (0, 255, 0), -1)    # verde = capa inferior
     if not np.isnan(vitreo_smooth[x]):
-        y = int(vitreo_smooth[x]) -2 # para poder diferenciar con la capa roja 
+        y = int(vitreo_smooth[x]) - 1  # para poder diferenciar con la capa roja 
         cv2.circle(img_color, (x, y), 1, (255, 0, 0), -1)    # verde = capa inferior
 
 # Dibujar fóvea
@@ -78,7 +114,7 @@ if fovea_x is not None and fovea_y is not None:
     cv2.circle(img_color, (fovea_x, fovea_y), 3, (255, 255, 0), -1)
     cv2.putText(img_color, 'Fovea', (fovea_x - 25, fovea_y - 25),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
-    print(f"Fovea detectada en: X={fovea_x}, Y={fovea_y}")
+    print(f"Fóvea detectada en: X={fovea_x}, Y={fovea_y}")
 
 # Mostrar resultados
 cv2.imshow('Original', img)
