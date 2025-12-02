@@ -1,18 +1,18 @@
 import cv2
 import numpy as np
 
-# === 1. Cargar imagen en escala de grises ===
+# Cargar imagen en escala de grises
 img = cv2.imread('OCT_Dataset/VID/vid_7700464_2.jpg', cv2.IMREAD_GRAYSCALE)
 
-# === 2. Preprocesamiento ===
+# Preprocesamiento ===
 blur = cv2.GaussianBlur(img, (5, 5), 0)
 
-# === 3. Filtro Canny ===
+# Filtros Canny: 1 para 2 capas de retina + fóvea y 1 para vitreo 
 # Los valores de umbral pueden ajustarse según la calidad de la imagen OCT
 edges = cv2.Canny(blur, 0, 400)
 filtroVitreo = cv2.Canny(blur, 25, 80)
 
-# === 4. Detección de bordes por columna ===
+# Detección de bordes por columna
 height, width = edges.shape
 top_line = np.full(width, np.nan)
 bottom_line = np.full(width, np.nan)
@@ -24,7 +24,7 @@ for x in range(width):
         top_line[x] = y_candidates[0]      # borde superior
         bottom_line[x] = y_candidates[-1]  # borde inferior
 
-# === 4.5 Vitreo
+# Vitreo
 height2, width2 = filtroVitreo.shape
 vitreo_line = np.full(width2, np.nan)
 
@@ -34,7 +34,7 @@ for x in range(width2):
     if len(y_candidates) > 0:
         vitreo_line[x] = y_candidates[0]  # borde vitreo
 
-# === 5. Suavizado de líneas ===
+# Suavizado de líneas
 def smooth(signal, window=15):
     kernel = np.ones(window) / window
     return np.convolve(signal, kernel, mode='same')
@@ -43,7 +43,7 @@ top_smooth = smooth(top_line)
 bottom_smooth = smooth(bottom_line)
 vitreo_smooth = smooth(vitreo_line)
 
-# === 6. Detección de fóvea ===
+# Detección de fóvea
 def detect_fovea_on_red_line(top_line, window_width=50):
     center_start = int(len(top_line) * 0.35)
     center_end = int(len(top_line) * 0.65)
@@ -58,7 +58,7 @@ def detect_fovea_on_red_line(top_line, window_width=50):
 
 fovea_x, fovea_y = detect_fovea_on_red_line(top_smooth)
 
-# === Detección de agujero macular alrededor de la fóvea ===
+# Detección de agujero macular alrededor de la fóvea
 def detectar_agujero_macular_fovea(top_line, bottom_line, vitreo_line,
                                    fovea_x, window_radius=40, thickness_ratio=0.3):
     start = max(fovea_x - window_radius, 0)
@@ -83,8 +83,6 @@ def detectar_agujero_macular_fovea(top_line, bottom_line, vitreo_line,
     print("NO hay agujero macular")
     return None, None
 
-
-# Ejemplo de uso
 agujero_x, agujero_grosor = detectar_agujero_macular_fovea(
     top_smooth,        
     bottom_smooth,      
@@ -94,7 +92,7 @@ agujero_x, agujero_grosor = detectar_agujero_macular_fovea(
     thickness_ratio=0.3  
 )
 
-# === 7. Visualización ===
+# Visualización
 img_color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
 for x in range(width):
