@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Cargar imagen en escala de grises
-img = cv2.imread('OCT_Dataset/VID/vid_7700464_2.jpg', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('OCT_Dataset/NO/no_1425855_1.jpg', cv2.IMREAD_GRAYSCALE)
 
 # Preprocesamiento ===
 blur = cv2.GaussianBlur(img, (5, 5), 0)
