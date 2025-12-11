@@ -4,7 +4,7 @@ import numpy as np
 # Cargar imagen en escala de grises
 img = cv2.imread('OCT_Dataset/NO/no_1425855_1.jpg', cv2.IMREAD_GRAYSCALE)
 
-# Preprocesamiento ===
+# Preprocesamiento
 blur = cv2.GaussianBlur(img, (5, 5), 0)
 
 # Filtros Canny: 1 para 2 capas de retina + fóvea y 1 para vitreo 
@@ -98,13 +98,13 @@ img_color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 for x in range(width):
     if not np.isnan(top_smooth[x]):
         y = int(top_smooth[x]) + 1
-        cv2.circle(img_color, (x, y), 1, (0, 0, 255), -1)    # rojo = capa superior
+        cv2.circle(img_color, (x, y), 1, (0, 0, 255), -1)    # azul = capa vítreo
     if not np.isnan(bottom_smooth[x]):
         y = int(bottom_smooth[x])
-        cv2.circle(img_color, (x, y), 1, (0, 255, 0), -1)    # verde = capa inferior
+        cv2.circle(img_color, (x, y), 1, (0, 255, 0), -1)    # verde = capa inferior/exterior
     if not np.isnan(vitreo_smooth[x]):
         y = int(vitreo_smooth[x]) - 1  # para poder diferenciar con la capa roja 
-        cv2.circle(img_color, (x, y), 1, (255, 0, 0), -1)    # verde = capa inferior
+        cv2.circle(img_color, (x, y), 1, (255, 0, 0), -1)    # rojo = capa superior/interior
 
 # Dibujar fóvea
 if fovea_x is not None and fovea_y is not None:
@@ -114,7 +114,7 @@ if fovea_x is not None and fovea_y is not None:
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
     print(f"Fóvea detectada en: X={fovea_x}, Y={fovea_y}")
 
-# Mostrar resultados
+# Mostrar resultados, pulsa cualquier tecla para cerrar todas
 cv2.imshow('Original', img)
 cv2.imshow('Bordes de Canny para retina y fovea', edges)
 cv2.imshow('Borde de Canny para vitreo', filtroVitreo)
